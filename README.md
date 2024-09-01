@@ -28,13 +28,19 @@ visit the demo page: [https://conanyu.github.io/yew-json-viewer](https://conanyu
 git clone https://github.com/conanyu/yew-json-viewer
 ```
 
-- Run HTTP server
+- Install [rust](https://www.rust-lang.org/)
 
-You can simply use python's built-in http server like this:
+- Install trunk from cargo
 
 ```bash
-cd yew-json-viewer/docs
-python -m http.server
+cargo install trunk --locked
+```
+
+- Run HTTP server
+
+```bash
+cd yew-json-viewer
+trunk serve --release
 ```
 
 ### Secondary Development

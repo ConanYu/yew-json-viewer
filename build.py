@@ -7,7 +7,7 @@ import subprocess
 def main():
     # build json parser
     cwd = os.path.dirname(os.path.abspath(__file__))
-    process = subprocess.run('trunk build --release --dist docs', shell=True, 
+    process = subprocess.run('trunk build --release --dist docs --public-url="/yew-json-viewer"', shell=True, 
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
     sys.stdout.write(process.stdout.decode('utf-8'))
     sys.stderr.write(process.stderr.decode('utf-8'))
