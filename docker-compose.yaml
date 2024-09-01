@@ -1,0 +1,10 @@
+services:
+  builder:
+    build: .
+    volumes:
+      - './build:/root/build'
+      - './docs:/root/docs'
+    command:
+      - python3
+      - /root/build.py
+    restart: no

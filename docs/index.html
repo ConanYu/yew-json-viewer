@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8"/>
+    
+<script type="module" nonce="QsSl6Hiu/MxVo0K71Negig==">
+import init, * as bindings from '/main-ae0c518118d9f237.js';
+const wasm = await init('/main-ae0c518118d9f237_bg.wasm');
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css">
+    <title></title>
+
+<link rel="modulepreload" href="/main-ae0c518118d9f237.js" crossorigin=anonymous integrity="sha384-h71O+xhbbgp8+FaViDbrnBqOqawkxFerdEEVJ/9eGYCo792pMlGDxLcvxFksv/mC">
+<link rel="modulepreload" href="/snippets/yew-json-viewer-f9b37e776ce7a338/inline0.js" crossorigin=anonymous integrity="sha384-zE0aNeZqK2Tu6OHq2nSZ8OZmMPanrErEPDS3OjSdPBKj+K4VEKPWVbsPqr4F8Gyr">
+<link rel="preload" href="/main-ae0c518118d9f237_bg.wasm" crossorigin=anonymous integrity="sha384-SzCfqhuaXXK0XSfetFllUCwcqRG8uvU2JEkBO6rhFLSSRD1U+DDjXiW8nUHs3aFP" as="fetch" type="application/wasm"></head>
+<body></body>
+</html>
