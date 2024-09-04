@@ -37,7 +37,7 @@ pub fn app() -> Html {
                 <>
                     <span class="h5">{"Parse Result"}</span>
                     <span style="vertical-align: 0.2em;">
-                        <CopyButton text={data.deref().clone()}/>
+                        <CopyButton text={serde_json::to_string_pretty(&value).unwrap()}/>
                     </span>
                     {JsonViewer::new(value).render()}
                 </>
