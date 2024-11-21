@@ -8,7 +8,7 @@ pub static JSON_DOCUMENT: Lazy<String> = Lazy::new(|| {
         border: 1px solid #aaa;
         margin-top: 0.5em;
         overflow: auto;
-        font-size: .875em;
+        font-size: 14px;
     "#).unwrap();
     style.get_class_name().to_string()
 });
