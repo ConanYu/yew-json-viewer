@@ -20,7 +20,7 @@ pub fn app() -> Html {
             <>
                 <span class="h5">{"Parse Result"}</span>
                 if !text.is_empty() {
-                    <span style="vertical-align: 0.2em;">
+                    <span style="vertical-align: 0.2em; margin-left: 0.2em;">
                         <CopyButton text={text.clone()}/>
                     </span>
                 }
@@ -36,7 +36,7 @@ pub fn app() -> Html {
             Ok(value) => html! {
                 <>
                     <span class="h5">{"Parse Result"}</span>
-                    <span style="vertical-align: 0.2em;">
+                    <span style="vertical-align: 0.2em; margin-left: 0.2em;">
                         <CopyButton text={serde_json::to_string_pretty(&value).unwrap()}/>
                     </span>
                     {JsonViewer::new(value).render()}

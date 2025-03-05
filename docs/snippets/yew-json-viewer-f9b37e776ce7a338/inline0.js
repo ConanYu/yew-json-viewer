@@ -1,7 +1,7 @@
 
-export function copy_text(text) {
-    navigator.clipboard.writeText(text).then(() => {});
+export function with_global_javascript_interaction() {
+    return !!window.__yew_json_viewer__interaction;
 }
-export function set_body_overflow_style(overflow) {
-    document.body.style.overflow = overflow;
+export function do_global_javascript_interaction(json_string) {
+    return window.__yew_json_viewer__interaction(json_string);
 }

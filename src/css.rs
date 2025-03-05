@@ -119,3 +119,22 @@ pub static DIALOG_CSS: Lazy<String> = Lazy::new(|| {
     .unwrap();
     style.get_class_name().to_string()
 });
+
+pub static INTERACTION_BUTTON_CSS: Lazy<String> = Lazy::new(|| {
+    let style = style!(
+        r#"
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        background-color: #ddd;
+        border-radius: 50%;
+        vertical-align: middle;
+        margin: -3px 5px 0 -3px;
+        &:hover {
+            background-color: #d0d0d0;
+        }
+    "#
+    )
+   .unwrap();
+    style.get_class_name().to_string()
+});

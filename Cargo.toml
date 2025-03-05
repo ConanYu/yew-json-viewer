@@ -13,6 +13,7 @@ gloo = "*"
 stylist = "*"
 once_cell = "*"
 url = "*"
+js-sys = "*"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
