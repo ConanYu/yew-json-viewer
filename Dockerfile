@@ -1,4 +1,4 @@
-FROM --platform=amd64 rust:1.85-bullseye
+FROM --platform=amd64 rust:1.86-bullseye
 
 COPY ./.cargo /root/.cargo
 

@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::{
     common::{set_body_overflow_style, value_length, CopyButton},
     css::*,
@@ -86,12 +88,12 @@ fn dialog(props: &DialogProps) -> Html {
 }
 
 #[derive(PartialEq, Properties)]
-struct ButtonControlDialogJsonViewerProps {
-    value: Value,
+pub struct ButtonControlDialogJsonViewerProps {
+    pub value: Value,
 }
 
 #[function_component(ButtonControlDialogJsonViewer)]
-fn button_control_dialog_json_viewer(props: &ButtonControlDialogJsonViewerProps) -> Html {
+pub fn button_control_dialog_json_viewer(props: &ButtonControlDialogJsonViewerProps) -> Html {
     let ButtonControlDialogJsonViewerProps { value } = props;
     let open = use_state(|| false);
     let mut option: JsonViewerOption = Default::default();
@@ -184,58 +186,69 @@ extern "C" {
     pub fn do_global_javascript_interaction(json_string: String) -> Option<js_sys::Function>;
 }
 
-pub fn default_interaction(arg: &Value) -> Vec<VNode> {
-    if with_global_javascript_interaction() {
-        if let Some(func) = do_global_javascript_interaction(arg.to_string()) {
-            let onclick = Callback::from(move |_: MouseEvent| {
-                func.call0(&JsValue::NULL).unwrap();
-            });
-            return vec![html! {
-                <span style="cursor: pointer;" {onclick}>
-                    <div class={INTERACTION_BUTTON_CSS.as_str()}/>
-                </span>
-            }];
-        }
-    }
-    let mut result = vec![];
-    match arg {
-        Value::String(s) => {
-            if let Ok(url) = url::Url::parse(s.as_str()) {
-                if ["http", "https", "ftp", "ftps"].contains(&url.scheme()) {
-                    let onclick = Callback::from(move |_: MouseEvent| {
-                        window()
-                            .open_with_url_and_target(url.as_str(), "_blank")
-                            .unwrap();
+pub fn default_interaction(use_json5: Rc<RefCell<bool>>) -> Box<dyn Fn(&Value) -> Vec<VNode>> {
+    Box::new(
+        move |arg: &Value| -> Vec<VNode> {
+            if with_global_javascript_interaction() {
+                if let Some(func) = do_global_javascript_interaction(arg.to_string()) {
+                    let onclick: Callback<MouseEvent> = Callback::from(move |_: MouseEvent| {
+                        func.call0(&JsValue::NULL).unwrap();
                     });
-                    result.push(html! {
+                    return vec![html! {
                         <span style="cursor: pointer;" {onclick}>
                             <div class={INTERACTION_BUTTON_CSS.as_str()}/>
                         </span>
-                    });
+                    }];
                 }
-            } else if let Ok(value) = serde_json::from_str::<Value>(s.as_str()) {
-                match value {
-                    Value::Object(_) | Value::Array(_) | Value::String(_) => {
+            }
+            let mut result = vec![];
+            match arg {
+                Value::String(s) => {
+                    if let Ok(url) = url::Url::parse(s.as_str()) {
+                        if ["http", "https", "ftp", "ftps"].contains(&url.scheme()) {
+                            let onclick = Callback::from(move |_: MouseEvent| {
+                                window()
+                                    .open_with_url_and_target(url.as_str(), "_blank")
+                                    .unwrap();
+                            });
+                            result.push(html! {
+                                <span style="cursor: pointer;" {onclick}>
+                                    <div class={INTERACTION_BUTTON_CSS.as_str()}/>
+                                </span>
+                            });
+                        }
+                    } else {
+                        let value = if *use_json5.borrow() {
+                            json5::from_str::<Value>(s.as_str()).map_err(|e| e.to_string())
+                        } else {
+                            serde_json::from_str::<Value>(s.as_str()).map_err(|e| e.to_string())
+                        };
+                        if let Ok(value) = value {
+                            match value {
+                                Value::Object(_) | Value::Array(_) | Value::String(_) => {
+                                    result.push(html! {
+                                        <ButtonControlDialogJsonViewer value={value.clone()}/>
+                                    });
+                                }
+                                _ => {}
+                            }
+                        } else if s.len() > 100 {
+                            result.push(html! {
+                                <LongTextViewer text={s.clone()}/>
+                            });
+                        }
+                    }
+                }
+                Value::Array(_) | Value::Object(_) => {
+                    if value_length(arg) > 0 {
                         result.push(html! {
-                            <ButtonControlDialogJsonViewer value={value.clone()}/>
+                            <ButtonControlDialogJsonViewer value={arg.clone()}/>
                         });
                     }
-                    _ => {}
                 }
-            } else if s.len() > 100 {
-                result.push(html! {
-                    <LongTextViewer text={s.clone()}/>
-                });
-            }
+                _ => {}
+            };
+            result
         }
-        Value::Array(_) | Value::Object(_) => {
-            if value_length(arg) > 0 {
-                result.push(html! {
-                    <ButtonControlDialogJsonViewer value={arg.clone()}/>
-                });
-            }
-        }
-        _ => {}
-    };
-    result
+    )
 }

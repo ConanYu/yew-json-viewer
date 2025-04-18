@@ -28,7 +28,7 @@ fn main() {}''')
     with open(os.path.join(cwd, 'build', 'package.json'), 'w', encoding='utf8') as f:
         f.write(json.dumps({
             "name": "yew-json-viewer",
-            "version": "1.0.6"
+            "version": "1.0.8"
         }, ensure_ascii=False, indent=2))
     sys.stdout.write(process.stdout.decode('utf-8'))
     sys.stderr.write(process.stderr.decode('utf-8'))

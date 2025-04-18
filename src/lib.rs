@@ -3,6 +3,7 @@ pub mod common;
 mod core;
 mod interaction;
 
+use std::cell::RefCell;
 use std::rc::Rc;
 use serde_json::Value;
 use wasm_bindgen::prelude::*;
@@ -20,6 +21,8 @@ pub struct JsonViewerOption {
     pub force_default_collapse_length_gte: usize,
     #[prop_or_default]
     pub dialog_index: Option<i32>,
+    #[prop_or_default]
+    pub use_json5: Rc<RefCell<bool>>,
 }
 
 impl JsonViewerOption {
@@ -39,13 +42,15 @@ impl PartialEq for JsonViewerOption {
 
 impl Default for JsonViewerOption {
     fn default() -> Self {
+        let use_json5 = Rc::new(RefCell::new(false));
         Self {
             collapsable: false,
             root_collapsable: false,
             force_default_collapse_length_gte: 100,
             dialog_index: None,
-            value_to_element: Box::new(interaction::default_interaction),
+            value_to_element: interaction::default_interaction(use_json5.clone()),
             additional_value_to_element: None,
+            use_json5: use_json5.clone(),
         }
     }
 }
@@ -78,6 +83,7 @@ pub struct JsonViewRenderOption {
     pub collapsable: Option<bool>,
     pub root_collapsable: Option<bool>,
     pub force_default_collapse_length_gte: Option<usize>,
+    pub use_json5: Option<bool>,
 }
 
 #[wasm_bindgen]
@@ -88,13 +94,18 @@ impl JsonViewRenderOption {
             collapsable: None,
             root_collapsable: None,
             force_default_collapse_length_gte: None,
+            use_json5: None,
         }
     }
 }
 
 #[wasm_bindgen]
 pub fn json_view_render(id: &str, value: &str, option: JsonViewRenderOption) {
-    let value: Value = serde_json::from_str(value).expect(format!("JSON parse error: {}", value).as_str());
+    let value: Value = if option.use_json5.is_some_and(|b| !b) {
+        json5::from_str(value).expect(format!("JSON parse error: {}", value).as_str())
+    } else {
+        serde_json::from_str(value).expect(format!("JSON parse error: {}", value).as_str())
+    };
     let element = gloo::utils::document().get_element_by_id(id).expect(format!("element({}) not found", id).as_str());
     let mut renderer_option = JsonViewerOption::default();
     if let Some(collapsable) = option.collapsable {
@@ -105,6 +116,9 @@ pub fn json_view_render(id: &str, value: &str, option: JsonViewRenderOption) {
     }
     if let Some(force_default_collapse_length_gte) = option.force_default_collapse_length_gte {
         renderer_option.force_default_collapse_length_gte = force_default_collapse_length_gte;
+    }
+    if let Some(use_json5) = option.use_json5 {
+        *renderer_option.use_json5.borrow_mut() = use_json5;
     }
     let renderer = yew::Renderer::<core::RootRender>::with_root_and_props(element, core::RenderProps {
         value: Rc::new(value),

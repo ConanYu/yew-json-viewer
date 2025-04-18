@@ -4,6 +4,7 @@ use serde_json::Value;
 use yew::prelude::*;
 use crate::common::is_collapsable;
 use crate::common::value_length;
+use crate::interaction::ButtonControlDialogJsonViewer;
 use crate::JsonViewerOption;
 use crate::css::*;
 
@@ -34,6 +35,20 @@ fn collapsed_class(collapsed: bool) -> Option<&'static str> {
     collapsed.then(|| "collapsed")
 }
 
+fn is_string_json(value: &Value, use_json5: bool) -> Option<Value> {
+    if value.is_string() {
+        let s = value.as_str().unwrap();
+        if let Ok(value) = if use_json5 {
+            json5::from_str::<Value>(s).map_err(|_| ())
+        } else {
+            serde_json::from_str::<Value>(s).map_err(|_| ())
+        } {
+            return Some(value);
+        }
+    }
+    None
+}
+
 #[function_component(RootRender)]
 pub fn root_render(props: &RenderProps) -> Html {
     let RenderProps { value, option, .. } = props;
@@ -50,6 +65,8 @@ pub fn root_render(props: &RenderProps) -> Html {
         <>
             if is_collapsable(value) {
                 <a href="" class={classes!(JSON_TOGGLE.as_str(), collapsed_class(*collapsed))} onclick={onclick.clone()}/>
+            } else if let Some(value) = is_string_json(value, *option.use_json5.borrow()) {
+                <ButtonControlDialogJsonViewer {value} /> 
             }
             <Render value={value.clone()} option={option} father_collapsed={*collapsed} {onclick} is_root={true}/>
         </>

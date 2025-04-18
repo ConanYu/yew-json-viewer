@@ -1,11 +1,12 @@
 use std::ops::Deref;
 use web_sys::wasm_bindgen::JsCast;
 use yew::prelude::*;
-use yew_json_viewer::{css::JSON_DOCUMENT, common::CopyButton, JsonViewer};
+use yew_json_viewer::{common::CopyButton, css::JSON_DOCUMENT, JsonViewer, JsonViewerOption};
 
 #[function_component(App)]
 pub fn app() -> Html {
     let data = use_state(|| "".to_string());
+    let use_json5 = use_state(|| false);
     let oninput = {
         let data = data.clone();
         Callback::from(move |e: InputEvent| {
@@ -14,11 +15,27 @@ pub fn app() -> Html {
             data.set(element.unwrap().value());
         })
     };
+
+    let use_json5_element = {
+        let onclick = Callback::from({
+            let use_json5 = use_json5.clone();
+            move |_| {
+                use_json5.set(!*use_json5);
+            }
+        });
+        html! {
+            <span style="margin-left: 0.6em; cursor: pointer;" {onclick}>
+                <input type="checkbox" checked={*use_json5} style="cursor: pointer;"/>
+                <label style="margin-left: 0.2em; cursor: pointer; user-select: none;">{"Use JSON5"}</label>
+            </span>
+        }
+    };
     
     let raw_text_element = |text: String| {
         html! {
             <>
                 <span class="h5">{"Parse Result"}</span>
+                {use_json5_element.clone()}
                 if !text.is_empty() {
                     <span style="vertical-align: 0.2em; margin-left: 0.2em;">
                         <CopyButton text={text.clone()}/>
@@ -32,18 +49,30 @@ pub fn app() -> Html {
     let element = if data.deref().is_empty() {
         raw_text_element("".to_string())
     } else {
-        match serde_json::from_str::<serde_json::Value>(data.deref().as_str()) {
-            Ok(value) => html! {
-                <>
-                    <span class="h5">{"Parse Result"}</span>
-                    <span style="vertical-align: 0.2em; margin-left: 0.2em;">
-                        <CopyButton text={serde_json::to_string_pretty(&value).unwrap()}/>
-                    </span>
-                    {JsonViewer::new(value).render()}
-                </>
+        let de = if *use_json5 {
+            json5::from_str::<serde_json::Value>(data.deref().as_str()).map_err(|e| e.to_string())
+        } else {
+            serde_json::from_str::<serde_json::Value>(data.deref().as_str()).map_err(|e| e.to_string())
+        };
+        match de {
+            Ok(value) => {
+                let option: JsonViewerOption = Default::default();
+                *option.use_json5.borrow_mut() = *use_json5;
+                html! {
+                    <>
+                        <span class="h5">{"Parse Result"}</span>
+                        {use_json5_element}
+                        <span style="vertical-align: 0.2em; margin-left: 0.2em;">
+                            <CopyButton text={serde_json::to_string_pretty(&value).unwrap()}/>
+                        </span>
+                        <div>
+                            {JsonViewer::new_with_option(value, option).render()}
+                        </div>
+                    </>
+                }
             },
             Err(err) => {
-                let msg = format!("Parse error: {}", err.to_string());
+                let msg = format!("Parse error: {}", err);
                 raw_text_element(msg)
             },
         }
