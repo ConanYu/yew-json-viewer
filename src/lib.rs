@@ -1,7 +1,7 @@
 pub mod css;
 pub mod common;
-mod core;
-mod interaction;
+pub mod core;
+pub mod interaction;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -101,7 +101,7 @@ impl JsonViewRenderOption {
 
 #[wasm_bindgen]
 pub fn json_view_render(id: &str, value: &str, option: JsonViewRenderOption) {
-    let value: Value = if option.use_json5.is_some_and(|b| !b) {
+    let value: Value = if option.use_json5.is_some_and(|b| b) {
         json5::from_str(value).expect(format!("JSON parse error: {}", value).as_str())
     } else {
         serde_json::from_str(value).expect(format!("JSON parse error: {}", value).as_str())
